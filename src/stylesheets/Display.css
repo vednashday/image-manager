@@ -1,0 +1,14 @@
+.disp-img {
+    width: 100%;
+    border-radius: 15px;
+    transition: transform 0.2s;
+  }
+  .disp-img:hover {
+    transform: scale(0.95);
+  }
+
+.container{
+    padding: 20px;
+}
+  
+    
