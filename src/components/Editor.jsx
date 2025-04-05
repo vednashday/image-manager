@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Drawer, Button } from "@mui/material";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -7,7 +7,7 @@ import "../stylesheets/Editor.css"
 const Editor = ({ image, onReplace, onClose, save }) => {
   const cropperRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [rotation, setRotation] = useState(0);
+
 
   // Function to crop the image and save it
   const applyCrop = () => {
@@ -23,10 +23,7 @@ const Editor = ({ image, onReplace, onClose, save }) => {
   // Rotate Image by 90 Degrees
   const rotateImage = () => {
     const cropper = cropperRef.current?.cropper;
-    if (cropper) {
-      setRotation((prev) => prev + 90);
-      cropper.rotate(90);
-    }
+    cropper.rotate(90);
   };
 
   // Flip Image Horizontally

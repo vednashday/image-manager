@@ -4,12 +4,23 @@ import "../stylesheets/Display.css"
 const Display = ({ images ,onEdit}) => {
     return (
         <div className="container">
-        <Masonry columns={4} spacing={2}>
+        {images.length === 0 ? (
+          <p style={{ textAlign: "center" }}>No images in gallery</p>
+        ) : (
+          <Masonry columns={4} spacing={2}>
             {images.map((img, index) => (
-                <img key={index} src={img} alt={`Edited ${index}`} onClick={()=> onEdit(img, index)} className="disp-img" />
+              <img
+                key={index}
+                src={img}
+                alt={`Edited ${index}`}
+                onClick={() => onEdit(img)}
+                className="disp-img"
+              />
             ))}
-        </Masonry>
-        </div>
-    )
-}
-export default Display;
+          </Masonry>
+        )}
+      </div>
+    );
+  };
+  
+  export default Display;
