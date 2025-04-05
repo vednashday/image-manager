@@ -43,4 +43,7 @@
     text-transform: none;
     border-radius: 5px;
   }
-  
+  .clear-button:hover {
+    background-color: #ff0000;
+    transform: scale(1.05);
+  }
