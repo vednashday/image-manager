@@ -8,6 +8,7 @@ function App() {
 
   const [images, setImages] = useState([]);
   const [currentImage, setCurrentImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   // Handle new image upload and open editor
   const handleUpload = (image) => {
@@ -16,13 +17,24 @@ function App() {
 
   // Save edited image to gallery
   const handleSave = (editedImage) => {
-    setImages([...images, editedImage]);
-    setCurrentImage(null); // Close editor after saving
+    if (selectedImageIndex !== null) {
+      const updatedImages = [...images];
+      updatedImages[selectedImageIndex] = editedImage;
+      setImages(updatedImages);
+      setSelectedImageIndex(null);
+    } else {
+      setImages([...images, editedImage]);
+    }
+    setCurrentImage(null);
+
   };
 
-  const handleEdit = (image) =>{
+  const handleEdit = (image , index) =>{
     setCurrentImage(image);
+    setSelectedImageIndex(index);
   }
+
+  
 
   return (
     <div className="image-manager">
@@ -33,7 +45,7 @@ function App() {
         onClose={() => setCurrentImage(null)} 
         onReplace={() => document.getElementById("file-input").click()}
       />
-      <Display images={images} onEdit={handleEdit} />
+      <Display images={images}  onEdit={handleEdit} />
     </div>
   );
 }

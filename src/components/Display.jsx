@@ -6,7 +6,7 @@ const Display = ({ images ,onEdit}) => {
         <div className="container">
         <Masonry columns={4} spacing={2}>
             {images.map((img, index) => (
-                <img key={index} src={img} alt={`Edited ${index}`} onClick={()=> onEdit(img)} className="disp-img" />
+                <img key={index} src={img} alt={`Edited ${index}`} onClick={()=> onEdit(img, index)} className="disp-img" />
             ))}
         </Masonry>
         </div>

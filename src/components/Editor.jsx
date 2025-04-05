@@ -6,6 +6,7 @@ import "../stylesheets/Editor.css"
 
 const Editor = ({ image, onReplace, onClose, save }) => {
   const cropperRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [rotation, setRotation] = useState(0);
 
   // Function to crop the image and save it
@@ -46,6 +47,17 @@ const Editor = ({ image, onReplace, onClose, save }) => {
     }
   };
 
+  const handleReplace = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend= () => {
+        save(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   return (
     <Drawer anchor="right" open={!!image} onClose={onClose}>
       <div className="editor" style={{ padding: "20px", textAlign: "center" }}>
@@ -85,9 +97,16 @@ const Editor = ({ image, onReplace, onClose, save }) => {
           <Button variant="contained" onClick={onClose} style={{ margin: "5px" }}>
             Close
           </Button>
-          <Button variant="contained" onClick={onReplace} style={{ margin: "5px" }}>
+          <Button variant="contained" onClick={() => fileInputRef.current.click()} style={{ margin: "5px" }}>
             Replace
           </Button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleReplace}
+          />
         </div>
       </div>
     </Drawer>
