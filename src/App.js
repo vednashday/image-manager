@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import Upload from "./components/Upload";
 import Editor from "./components/Editor";
 import Display from "./components/Display";
-import "./index.css"
+import "./index.css";
+
+import { storage } from "./firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function App() {
-
   const [images, setImages] = useState(() => {
     const saved = localStorage.getItem("gallery");
     return saved ? JSON.parse(saved) : [];
@@ -13,65 +15,69 @@ function App() {
   const [currentImage, setCurrentImage] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
-  // Handle new image upload and open editor
-  const handleUpload = (image) => {
-    setCurrentImage(image);
+  // ✅ Upload image to Firebase
+  const handleUpload = async (dataUrl) => {
+    const blob = await (await fetch(dataUrl)).blob();
+    const id = crypto.randomUUID();
+    const storageRef = ref(storage, `gallery/${id}`);
+    
+    await uploadBytes(storageRef, blob);
+    const downloadURL = await getDownloadURL(storageRef);
+
+    setCurrentImage({
+      url: downloadURL,
+      id,
+      createdAt: Date.now()
+    });
   };
 
-  useEffect (() =>{
+  useEffect(() => {
     const savedImages = JSON.parse(localStorage.getItem("gallery"));
-    console.log("Loaded from localStorage:", savedImages);
     if (savedImages && Array.isArray(savedImages)) {
       setImages(savedImages);
     }
-  },[]);
+  }, []);
 
   useEffect(() => {
-    console.log("Saving to localStorage:", images);
     localStorage.setItem("gallery", JSON.stringify(images));
   }, [images]);
-  
-  // Save edited image to gallery
+
   const handleSave = (editedImage) => {
     if (selectedImageIndex !== null) {
       const updatedImages = [...images];
       updatedImages[selectedImageIndex] = editedImage;
       setImages(updatedImages);
-      
     } else {
       setImages([...images, editedImage]);
     }
     setCurrentImage(null);
     setSelectedImageIndex(null);
-
   };
 
-  const handleEdit = (image) =>{
-    const index = images.indexOf(image);
+  const handleEdit = (image) => {
+    const index = images.findIndex((img) => img.id === image.id);
     setCurrentImage(image);
     setSelectedImageIndex(index);
-  }
-
-  const handleClearGallery = () => {
-    if (window.confirm("Are you sure you want to clear the gallery")){
-      setImages([]);
-      localStorage.removeItem("gallery");
-    }
   };
 
-  
+  const handleClearGallery = () => {
+    if (window.confirm("Are you sure you want to clear the gallery?")) {
+      setImages([]);
+      localStorage.removeItem("gallery");
+      // Optionally: delete from Firebase too
+    }
+  };
 
   return (
     <div className="image-manager">
       <Upload onUpload={handleUpload} onClear={handleClearGallery} />
-      
-      <Editor 
-        image={currentImage} 
-        save={handleSave} 
-        onClose={() => setCurrentImage(null)} 
+      <Editor
+        image={currentImage}
+        save={handleSave}
+        onClose={() => setCurrentImage(null)}
         onReplace={() => document.getElementById("file-input").click()}
       />
-      <Display images={images}  onEdit={handleEdit} />
+      <Display images={images} onEdit={handleEdit} />
     </div>
   );
 }

@@ -2,31 +2,38 @@ import React, { useRef } from "react";
 import { Drawer, Button } from "@mui/material";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
-import "../stylesheets/Editor.css"
+import "../stylesheets/Editor.css";
+
+import { storage } from "../firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const Editor = ({ image, onReplace, onClose, save }) => {
   const cropperRef = useRef(null);
   const fileInputRef = useRef(null);
 
-
-  // Function to crop the image and save it
-  const applyCrop = () => {
+  const applyCrop = async () => {
     const cropper = cropperRef.current?.cropper;
     if (cropper) {
       const croppedCanvas = cropper.getCroppedCanvas();
       if (croppedCanvas) {
-        save(croppedCanvas.toDataURL());
+        // ✅ Convert canvas to Blob
+        croppedCanvas.toBlob(async (blob) => {
+          const id = crypto.randomUUID();
+          const storageRef = ref(storage, `gallery/${id}`);
+          await uploadBytes(storageRef, blob);
+          const url = await getDownloadURL(storageRef);
+
+          save({ id, url, createdAt: Date.now() });
+        }, "image/png");
       }
     }
   };
 
-  // Rotate Image by 90 Degrees
   const rotateImage = () => {
     const cropper = cropperRef.current?.cropper;
     cropper.rotate(90);
   };
 
-  // Flip Image Horizontally
   const flipHorizontal = () => {
     const cropper = cropperRef.current?.cropper;
     if (cropper) {
@@ -35,7 +42,6 @@ const Editor = ({ image, onReplace, onClose, save }) => {
     }
   };
 
-  // Flip Image Vertically
   const flipVertical = () => {
     const cropper = cropperRef.current?.cropper;
     if (cropper) {
@@ -44,16 +50,17 @@ const Editor = ({ image, onReplace, onClose, save }) => {
     }
   };
 
-  const handleReplace = (e) => {
+  const handleReplace = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend= () => {
-        save(reader.result);
-      };
-      reader.readAsDataURL(file);
+      const id = crypto.randomUUID();
+      const storageRef = ref(storage, `gallery/${id}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
+      save({ id, url, createdAt: Date.now() });
     }
-  }
+  };
 
   return (
     <Drawer anchor="right" open={!!image} onClose={onClose}>
@@ -61,10 +68,9 @@ const Editor = ({ image, onReplace, onClose, save }) => {
         {image ? (
           <Cropper
             ref={cropperRef}
-            src={image}
+            src={image.url || image} // supports both string or object
             style={{ height: 400, width: "100%" }}
             initialAspectRatio={1}
-            
             guides={true}
             viewMode={1}
             background={false}
