@@ -16,20 +16,15 @@ function App() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   // ✅ Upload image to Firebase
-  const handleUpload = async (dataUrl) => {
-    const blob = await (await fetch(dataUrl)).blob();
-    const id = crypto.randomUUID();
-    const storageRef = ref(storage, `gallery/${id}`);
-    
-    await uploadBytes(storageRef, blob);
-    const downloadURL = await getDownloadURL(storageRef);
+  const handleUpload = async (file) => {
+  const id = crypto.randomUUID();
+  const storageRef = ref(storage, `gallery/${id}`);
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
 
-    setCurrentImage({
-      url: downloadURL,
-      id,
-      createdAt: Date.now()
-    });
-  };
+  setCurrentImage({ id, url: downloadURL, createdAt: Date.now() });
+};
+
 
   useEffect(() => {
     const savedImages = JSON.parse(localStorage.getItem("gallery"));
