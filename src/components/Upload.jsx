@@ -22,7 +22,9 @@ const Upload = ({ onUpload, onClear }) => {
         <label htmlFor="file-input" className="upload-button">
           Add to Gallery
         </label>
-        <button onClick={onClear} className="clear-button">Clear Gallery</button>
+        <button onClick={onClear} className="clear-button">
+          Clear Gallery
+        </button>
       </div>
     </div>
   );

@@ -2,10 +2,11 @@ import React, { useRef } from "react";
 import { Drawer, Button } from "@mui/material";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
+import axios from "axios";
 import "../stylesheets/Editor.css";
 
-import { storage } from "../firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/drsqx7pfr/image/upload";
+const UPLOAD_PRESET = "imgmanager"; 
 
 const Editor = ({ image, onReplace, onClose, save }) => {
   const cropperRef = useRef(null);
@@ -14,16 +15,24 @@ const Editor = ({ image, onReplace, onClose, save }) => {
   const applyCrop = async () => {
     const cropper = cropperRef.current?.cropper;
     if (cropper) {
-      const croppedCanvas = cropper.getCroppedCanvas();
-      if (croppedCanvas) {
-        // ✅ Convert canvas to Blob
-        croppedCanvas.toBlob(async (blob) => {
-          const id = crypto.randomUUID();
-          const storageRef = ref(storage, `gallery/${id}`);
-          await uploadBytes(storageRef, blob);
-          const url = await getDownloadURL(storageRef);
+      const canvas = cropper.getCroppedCanvas();
+      if (canvas) {
+        canvas.toBlob(async (blob) => {
+          const formData = new FormData();
+          formData.append("file", blob);
+          formData.append("upload_preset", UPLOAD_PRESET);
+          formData.append("folder", "gallery");
 
-          save({ id, url, createdAt: Date.now() });
+          try {
+            const res = await axios.post(CLOUDINARY_URL, formData);
+            save({
+              id: res.data.asset_id,
+              url: res.data.secure_url,
+              createdAt: Date.now(),
+            });
+          } catch (err) {
+            console.error("Crop upload failed:", err);
+          }
         }, "image/png");
       }
     }
@@ -36,29 +45,34 @@ const Editor = ({ image, onReplace, onClose, save }) => {
 
   const flipHorizontal = () => {
     const cropper = cropperRef.current?.cropper;
-    if (cropper) {
-      const currentScaleX = cropper.getData().scaleX || 1;
-      cropper.scaleX(currentScaleX * -1);
-    }
+    const scaleX = cropper.getData().scaleX || 1;
+    cropper.scaleX(scaleX * -1);
   };
 
   const flipVertical = () => {
     const cropper = cropperRef.current?.cropper;
-    if (cropper) {
-      const currentScaleY = cropper.getData().scaleY || 1;
-      cropper.scaleY(currentScaleY * -1);
-    }
+    const scaleY = cropper.getData().scaleY || 1;
+    cropper.scaleY(scaleY * -1);
   };
 
   const handleReplace = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const id = crypto.randomUUID();
-      const storageRef = ref(storage, `gallery/${id}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", UPLOAD_PRESET);
+      formData.append("folder", "gallery");
 
-      save({ id, url, createdAt: Date.now() });
+      try {
+        const res = await axios.post(CLOUDINARY_URL, formData);
+        save({
+          id: res.data.asset_id,
+          url: res.data.secure_url,
+          createdAt: Date.now(),
+        });
+      } catch (err) {
+        console.error("Replace upload failed:", err);
+      }
     }
   };
 
@@ -68,7 +82,7 @@ const Editor = ({ image, onReplace, onClose, save }) => {
         {image ? (
           <Cropper
             ref={cropperRef}
-            src={image.url || image} // supports both string or object
+            src={image.url}
             style={{ height: 400, width: "100%" }}
             initialAspectRatio={1}
             guides={true}

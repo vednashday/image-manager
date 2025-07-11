@@ -3,9 +3,8 @@ import Upload from "./components/Upload";
 import Editor from "./components/Editor";
 import Display from "./components/Display";
 import "./index.css";
+import axios from "axios";
 
-import { storage } from "./firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function App() {
   const [images, setImages] = useState(() => {
@@ -15,14 +14,28 @@ function App() {
   const [currentImage, setCurrentImage] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
-  // ✅ Upload image to Firebase
   const handleUpload = async (file) => {
-  const id = crypto.randomUUID();
-  const storageRef = ref(storage, `gallery/${id}`);
-  await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(storageRef);
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "imgmanager"); // your preset
+  formData.append("folder", "gallery"); // optional folder
 
-  setCurrentImage({ id, url: downloadURL, createdAt: Date.now() });
+  try {
+    const res = await axios.post(
+      "https://api.cloudinary.com/v1_1/drsqx7pfr/image/upload",
+      formData
+    );
+
+    const uploadedImage = {
+      id: res.data.asset_id,
+      url: res.data.secure_url,
+      createdAt: Date.now(),
+    };
+
+    setCurrentImage(uploadedImage);
+  } catch (err) {
+    console.error("Upload error:", err);
+  }
 };
 
 
