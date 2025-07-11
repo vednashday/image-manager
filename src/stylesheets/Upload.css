@@ -16,6 +16,21 @@
 
   }
 
+/* was missing or unused */
+.upload-button {
+  background-color: #2d5cf6;
+  color: white;
+  font-size: 14px;
+  padding: 8px 20px;
+  text-transform: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  background-color: #1a4cd8;
+  transform: scale(1.05);
+}
 
   
   .file-input {
